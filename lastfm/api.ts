@@ -18,6 +18,10 @@ export class LastFmApi {
 	constructor(private apiKey: string, private username: string) {}
 
 	private async request(method: string, params: Record<string, string> = {}) {
+        // Display a clear error message if either the API key or the user name are not provided
+        if (!this.apiKey || !this.username) {
+            throw new Error("Missing API key or username. Please configure the plugin in Settings.");
+        }
 		const url = new URL(BASE_URL);
 		url.search = new URLSearchParams({
 			method,

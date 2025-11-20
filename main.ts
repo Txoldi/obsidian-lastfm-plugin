@@ -17,6 +17,11 @@ export default class LastFmPlugin extends Plugin {
     		'headphones',
     		'Last.fm Plugin',
     		(_evt: MouseEvent) => {
+				if (!this.settings.apiKey || !this.settings.username) {
+					// Defenive coding against missing input settings (API key and user name)
+            		new Notice("Please configure Last.fm API key and username in Settings → Last.fm Plugin.");
+            		return;
+        		}
         		new LastFmModal(this.app, api, this).open();
     		}
 		);
@@ -27,9 +32,14 @@ export default class LastFmPlugin extends Plugin {
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'test-lastfm-plugin',
+			id: 'obsidian-lastfm-plugin',
 			name: 'Open Last.fm plugin',
 			callback: () => {
+				if (!this.settings.apiKey || !this.settings.username) {
+            		// Defenive coding against missing input settings (API key and user name)
+					new Notice("Please configure Last.fm API key and username in Settings → Last.fm Plugin.");
+            		return;
+        		}
 				new LastFmModal(this.app, api, this).open();
 			}
 		});

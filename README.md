@@ -77,7 +77,7 @@ MIT
 
 ## 🙏 Credits
 
-Built by **Your Name**  
+Built by **Gorka Gómez**  
 Uses the Last.fm public API.
 
 ---

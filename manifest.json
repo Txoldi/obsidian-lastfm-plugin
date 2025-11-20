@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-lastfm-plugin",
-	"name": "Last.fm Plugin",
-	"version": "1.0.0",
+	"id": "lastfm",
+	"name": "Last.fm",
+	"version": "1.0.1",
 	"minAppVersion": "1.5.0",
-	"description": "Fetch recent scrobbles, top tracks, artists, and albums from Last.fm directly into Obsidian.",
+	"description": "Fetch recent scrobbles, top tracks, artists, and albums from Last.fm.",
 	"author": "Gorka Gomez",
 	"authorUrl": "https://github.com/Txoldi",
 	"isDesktopOnly": false

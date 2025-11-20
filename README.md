@@ -4,17 +4,19 @@ Fetch data and create notes from your **Last.fm listening history** directly ins
 
 This plugin lets you fetch:
 
-🎧 **Recent scrobbles**  
-🔥 **Top tracks, artists, and albums** (for any Last.fm period)  
-📅 **Weekly charts** (from → to weekly ranges via Last.fm’s API)  
-🖼 **Album artwork** (available for recent scrobbles and top albums)  
-📝 Automatically generate Markdown notes into your chosen folder
+**Recent scrobbles**  
+**Top tracks, artists, and albums** (for any Last.fm period)  
+**Weekly charts** (from → to weekly ranges via Last.fm’s API)  
+**Album artwork** (available for recent scrobbles and top albums)  
+Automatically generate Markdown notes into your chosen folder
 
 ---
 
 ## 📸 Preview
 
-![Modal Preview](assets/lastfm_plugin_modal.png)
+<p align="center">
+  <img src="assets/lastfm_plugin_modal.png" width="500">
+</p>
 
 ---
 

@@ -10,8 +10,6 @@ export default class LastFmPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		const api = new LastFmApi(this.settings.apiKey, this.settings.username);
-
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
     		'headphones',
@@ -22,6 +20,7 @@ export default class LastFmPlugin extends Plugin {
             		new Notice("Please configure Last.fm API key and username in Settings → Last.fm Plugin.");
             		return;
         		}
+				const api = new LastFmApi(this.settings.apiKey, this.settings.username);
         		new LastFmModal(this.app, api, this).open();
     		}
 		);
@@ -40,6 +39,7 @@ export default class LastFmPlugin extends Plugin {
 					new Notice("Please configure Last.fm API key and username in Settings → Last.fm Plugin.");
             		return;
         		}
+				const api = new LastFmApi(this.settings.apiKey, this.settings.username);
 				new LastFmModal(this.app, api, this).open();
 			}
 		});

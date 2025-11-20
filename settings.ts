@@ -9,7 +9,7 @@ export interface LastFmPluginSettings {
 
 export const DEFAULT_SETTINGS: LastFmPluginSettings = {
 	apiKey: "",
-	username: "rj",
+	username: "",
     folder: "Lastfm"
 };
 
@@ -36,17 +36,7 @@ export class LastFmSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.apiKey = value;
                     await this.plugin.saveSettings();
-                    this.display(); // Refresh UI to update warnings
                 }));
-
-        // Warning if API key is missing
-        if (!this.plugin.settings.apiKey) {
-            const warn = containerEl.createEl("p", {
-                text: "⚠ Your API key is required for the plugin to work.",
-            });
-            warn.style.color = "var(--text-error)";
-            warn.style.marginTop = "-8px";
-        }
 
         /* ----------------------------
          * Username
@@ -59,17 +49,7 @@ export class LastFmSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.username = value;
                     await this.plugin.saveSettings();
-                    this.display();
                 }));
-
-        // IWarning if username is missing
-        if (!this.plugin.settings.username) {
-            const warn = containerEl.createEl("p", {
-                text: "⚠ Username is required.",
-            });
-            warn.style.color = "var(--text-error)";
-            warn.style.marginTop = "-8px";
-        }
 
         /* ----------------------------
          * Folder
@@ -82,17 +62,6 @@ export class LastFmSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.folder = value;
                     await this.plugin.saveSettings();
-                    this.display();
-                }));
-
-        // Warning if the folder contains invalid characters
-        const illegalChars = /[<>:"/\\|?*]/;
-        if (illegalChars.test(this.plugin.settings.folder)) {
-            const warn = containerEl.createEl("p", {
-                text: "⚠ Folder contains invalid characters. Remove: < > : \" / \\ | ? *",
-            });
-            warn.style.color = "var(--text-error)";
-            warn.style.marginTop = "-8px";
-        }                
+                }));     
     }
 }

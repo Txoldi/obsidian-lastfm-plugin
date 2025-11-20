@@ -1,8 +1,134 @@
-/*
+/* -----------------------------------------
+   MODAL BASE
+----------------------------------------- */
+.lastfm-modal {
+    padding: 5;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.lastfm-modal h3 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+}
 
-If your plugin does not need CSS, delete this file.
 
-*/
+/* -----------------------------------------
+   TABS
+----------------------------------------- */
+.lastfm-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.lastfm-tabs button {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-normal);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.lastfm-tabs button:hover {
+    background: var(--background-modifier-hover);
+}
+
+.lastfm-tabs button.active {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+/* -----------------------------------------
+   RESULTS SECTION
+----------------------------------------- */
+.lastfm-results {
+    margin-top: 1rem;
+    padding: 0.5rem;
+}
+
+.lastfm-results h4 {
+    margin-bottom: 0.5rem;
+}
+
+/* Track item */
+.lastfm-track-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+    display: flex;
+    gap: 1rem;
+}
+
+.lastfm-track-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.lastfm-track-info strong {
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.lastfm-track-metadata {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+/* -----------------------------------------
+   ALBUM ART (not used for now)
+----------------------------------------- */
+.lastfm-album-art {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* -----------------------------------------
+   ICONS FOR SECTIONS
+----------------------------------------- */
+.lastfm-tab-icon.recent::before {
+    content: "🎧";
+    margin-right: 4px;
+}
+.lastfm-tab-icon.topTracks::before {
+    content: "🎵";
+    margin-right: 4px;
+}
+.lastfm-tab-icon.topArtists::before {
+    content: "👤";
+    margin-right: 4px;
+}
+.lastfm-tab-icon.topAlbums::before {
+    content: "💿";
+    margin-right: 4px;
+}
+
+/* -----------------------------------------
+   RANGE MODE INPUTS
+----------------------------------------- */
+.lastfm-date-input input {
+    width: 130px !important;
+}
+
+.lastfm-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* -----------------------------------------
+   SPACING + UI
+----------------------------------------- */
+.lastfm-spacer {
+    height: 1rem;
+}
+
+.lastfm-muted {
+    color: var(--text-muted);
+}

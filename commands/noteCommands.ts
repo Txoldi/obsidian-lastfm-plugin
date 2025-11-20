@@ -2,36 +2,70 @@ import { App, Notice } from "obsidian";
 import { LastFmApi } from "../lastfm/api";
 import type { LastFmTrack, LastFmAlbum } from "../lastfm/types";
 import LastFmPlugin from "main";
-import { ensureFolder, extractImage, tsToDate } from "utils/helpers";
+import { ensureFolder, extractImage, getArtistName, tsToDate } from "utils/helpers";
 
 function buildMarkdownBlock(
     type: "tracks" | "artists" | "albums",
     item: any,
-    index: number
+    index: number,
+    context: "default" | "recent" = "default"
 ): string {
-    const img = extractImage(item);
     const num = index + 1;
 
-    if (type === "tracks") {
-        const artist =
-            item.artist?.name ??
-            item.artist?.["#text"] ??
-            "Unknown Artist";
+    /* ---------------------------
+     * Decide whether to include image.
+     * Images are only returned for Recent Scrobbles and top albums
+     * --------------------------- */
+    const shouldIncludeImg =
+        (context === "recent" && type === "tracks") || // recent scrobbles
+        (context === "default" && type === "albums");  // top albums only
 
-        return `## ${num}. ${item.name} — ${artist}
-**Playcount:** ${item.playcount}
-${img ? `![](${img})` : ""}
+    const img = shouldIncludeImg ? extractImage(item) : null;
+
+    /* ---------------------------
+     * Tracks
+     * --------------------------- */
+    if (type === "tracks") {
+        const artist = getArtistName(item.artist);
+
+        const nowPlaying =
+            context === "recent" && item["@attr"]?.nowplaying
+                ? " (Now playing)"
+                : "";
+
+        const album =
+            context === "recent"
+                ? item.album?.["#text"] ?? item.album?.name ?? ""
+                : "";
+
+        const playcountLine = item.playcount
+            ? `\n**Playcount:** ${item.playcount}`
+            : "";
+
+        const albumLine =
+            context === "recent" && album
+                ? `\nAlbum: ${album}`
+                : "";
+
+        return `## ${num}. ${item.name} — ${artist}${nowPlaying}${playcountLine}
+${img ? `![](${img})` : ""}${albumLine}
 `;
     }
 
+    /* ---------------------------
+     * Artists (never include images)
+     * --------------------------- */
     if (type === "artists") {
         return `## ${num}. ${item.name}
 **Playcount:** ${item.playcount}
 `;
     }
 
+    /* ---------------------------
+     * Albums (include images ONLY for top albums)
+     * --------------------------- */
     if (type === "albums") {
-        const artist = item.artist?.name ?? "Unknown Artist";
+        const artist = getArtistName(item.artist);
 
         return `## ${num}. ${item.name} — ${artist}
 **Playcount:** ${item.playcount}
@@ -42,40 +76,28 @@ ${img ? `![](${img})` : ""}
     return "";
 }
 
-export async function createRecentTracksNote(app: App, api: LastFmApi, plugin: LastFmPlugin) {
-    const tracks = await api.fetchRecentScrobbles();
 
-    const content = tracks
-        .map(t => {
-            const artist = t.artist.name;
-            const title = t.name;
-            const album = t.album?.name ?? "";
-            const nowPlaying = t["@attr"]?.nowplaying ? " (Now playing)" : "";
+export async function createRecentTracksNote(
+    app: App,
+    api: LastFmApi,
+    plugin: LastFmPlugin,
+    limit: number
+) {
+    const tracks = await api.fetchRecentScrobbles(limit);
 
-            const imgUrl =
-                t.image?.find(i => i.size === "large")?.["#text"] ||
-                t.image?.find(i => i.size === "medium")?.["#text"] ||
-                t.image?.find(i => i.size === "small")?.["#text"] ||
-                t.image?.[0]?.["#text"] ||
-                "";
+    const folder = await ensureFolder(plugin);
+    const date = new Date().toISOString().split("T")[0];
 
-            // Markdown block with image + track info
-            return `### ${title} — ${artist}${nowPlaying}
-            ${imgUrl ? `![](${imgUrl})` : ""}
-            Album: ${album}`;
-        })
+    const blocks = tracks
+        .map((t, idx) => buildMarkdownBlock("tracks", t, idx, "recent"))
         .join("\n");
 
-	let folderPath = plugin.settings.folder
-	
-	// Create folder if it doesn't exist
-	if (!app.vault.getAbstractFileByPath(folderPath)) {
-    	await app.vault.createFolder(folderPath);
-	}
+    const content = `# Recent Scrobbles — ${date}
 
-	const fileName = `LastFM Recent Scrobbles from ${new Date().toISOString().split("T")[0]}.md`;
-	const filePath = `${folderPath}/${fileName}`;
+${blocks}
+`;
 
+    const filePath = `${folder}/LastFM Recent Scrobbles ${date}.md`;
     await app.vault.create(filePath, content);
 
     new Notice("Last.fm note created!");
@@ -88,7 +110,8 @@ export async function createTopNote(
     plugin: LastFmPlugin,
     api: LastFmApi,
     type: "tracks" | "artists" | "albums",
-    period: string
+    period: string,
+    limit: number
 ) {
     const { app } = plugin;
     const folder = await ensureFolder(plugin);
@@ -96,9 +119,9 @@ export async function createTopNote(
 
     let results: any[] = [];
 
-    if (type === "tracks") results = await api.fetchTopTracks(period);
-    if (type === "artists") results = await api.fetchTopArtists(period);
-    if (type === "albums") results = await api.fetchTopAlbums(period);
+    if (type === "tracks") results = await api.fetchTopTracks(period, limit);
+    if (type === "artists") results = await api.fetchTopArtists(period, limit);
+    if (type === "albums") results = await api.fetchTopAlbums(period, limit);
 
     const blocks = results
         .map((item, idx) => buildMarkdownBlock(type, item, idx))

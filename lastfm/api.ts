@@ -50,7 +50,7 @@ export class LastFmApi {
     /* ----------------------------------------------------
      * RECENT SCROBBLES
      * ---------------------------------------------------- */
-	async fetchRecentScrobbles(limit = 10): Promise<LastFmTrack[]> {
+	async fetchRecentScrobbles(limit = 20): Promise<LastFmTrack[]> {
 		const data = (await this.request(
 			"user.getrecenttracks",
 			{ limit: limit.toString() }

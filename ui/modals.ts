@@ -128,7 +128,7 @@ export class LastFmModal extends Modal {
 			.setName("Limit")
 			.setDesc("Number of recent scrobbles to fetch")
 			.addDropdown(drop => {
-				["5", "10", "20", "50"].forEach(n => drop.addOption(n, n));
+				["5", "10", "20", "50", "100"].forEach(n => drop.addOption(n, n));
 				drop.setValue(String(this.limit));
 				drop.onChange(v => (this.limit = Number(v)));
 			});
@@ -137,17 +137,24 @@ export class LastFmModal extends Modal {
 		new Setting(container)
 			.setName("Actions")
 			.addButton(btn =>
-				btn
-					.setButtonText("Fetch")
-					.setCta()
-					.onClick(() => this.fetchRecent(container))
+    			btn
+        			.setButtonText("Fetch")
+        			.setCta()
+        			.onClick(() => {
+            			// 1. Clear modal
+            			this.redrawAsync();
+						// 2. Allow redraw to finish before injecting results
+            			setTimeout(() => {
+                			this.fetchRecent(this.contentEl);
+            			}, 10);
+        			})
 			)
 			.addButton(btn =>
 				btn
 					.setButtonText("Create Note")
                     .setCta()
 					.onClick(async () => {
-						await createRecentTracksNote(this.app, this.api, this.plugin);
+						await createRecentTracksNote(this.app, this.api, this.plugin, this.limit);
 						this.close();
 					})
 			);
@@ -188,6 +195,18 @@ export class LastFmModal extends Modal {
 					drop.onChange(v => (this.topPeriod = v));
 				});
 
+			/* ------------------------------
+ 			* Limit dropdown (ONLY FOR PERIOD MODE)
+ 			* ------------------------------ */
+			new Setting(container)
+    			.setName("Limit")
+    			.setDesc("Number of items to fetch")
+    			.addDropdown(drop => {
+        			["10", "20", "30", "50", "100"].forEach(n => drop.addOption(n, n));
+        			drop.setValue(String(this.limit));
+        			drop.onChange(v => (this.limit = Number(v)));
+    			});
+
 			new Setting(container)
 				.setName("Actions")
 				.addButton(btn =>
@@ -204,8 +223,9 @@ export class LastFmModal extends Modal {
 				.addButton(btn =>
 					btn
 						.setButtonText("Create Note")
+						.setCta()
 						.onClick(async () => {
-							await createTopNote(this.plugin, this.api, type, this.topPeriod);
+							await createTopNote(this.plugin, this.api, type, this.topPeriod, this.limit);
 							this.close();
 						})
 				);
@@ -251,6 +271,7 @@ export class LastFmModal extends Modal {
 			.addButton(btn =>
 				btn
 					.setButtonText("Create Note")
+					.setCta()
 					.onClick(async () => {
 						const period = this.weeklyPeriods[this.selectedWeeklyIndex];
 						await createWeeklyNote(this.plugin, this.api, type, period.from, period.to);
@@ -290,11 +311,11 @@ export class LastFmModal extends Modal {
 
 		try {
 			if (type === "tracks") {
-				results = await this.api.fetchTopTracks(this.topPeriod, 20);
+				results = await this.api.fetchTopTracks(this.topPeriod, this.limit);
 			} else if (type === "albums") {
-				results = await this.api.fetchTopAlbums(this.topPeriod, 20);
+				results = await this.api.fetchTopAlbums(this.topPeriod, this.limit);
 			} else if (type === "artists") {
-				results = await this.api.fetchTopArtists(this.topPeriod, 20);
+				results = await this.api.fetchTopArtists(this.topPeriod, this.limit);
 			}
 
 			container.createEl("hr");

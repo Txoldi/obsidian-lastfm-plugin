@@ -13,10 +13,13 @@ export default class LastFmPlugin extends Plugin {
 		const api = new LastFmApi(this.settings.apiKey, this.settings.username);
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Last.fm Plugin', (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('Last.fm Plugin loaded !');
-		});
+		const ribbonIconEl = this.addRibbonIcon(
+    		'headphones',
+    		'Last.fm Plugin',
+    		(_evt: MouseEvent) => {
+        		new LastFmModal(this.app, api, this).open();
+    		}
+		);
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
@@ -25,7 +28,7 @@ export default class LastFmPlugin extends Plugin {
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: 'test-lastfm-plugin',
-			name: 'Test Last.fm API Recent Scrobbles',
+			name: 'Open Last.fm plugin',
 			callback: () => {
 				new LastFmModal(this.app, api, this).open();
 			}

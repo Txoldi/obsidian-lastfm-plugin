@@ -1,7 +1,7 @@
 {
 	"id": "lastfm-plugin",
-	"name": "Last.fm Sync",
-	"version": "0.1.0",
+	"name": "Last.fm Plugin",
+	"version": "1.0.0",
 	"minAppVersion": "1.0.0",
 	"description": "Pulls data from Last.fm API and creates notes from it.",
 	"author": "Gorka Gomez",

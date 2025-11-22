@@ -11,6 +11,7 @@ import {
     LastFmWeeklyAlbum,
     LastFmWeeklyTrackChartResponse
 } from "./types";
+import { requestUrl } from "obsidian";
 
 const BASE_URL = "https://ws.audioscrobbler.com/2.0/";
 
@@ -31,9 +32,15 @@ export class LastFmApi {
 			...params
 		}).toString();
 
-		const res = await fetch(url.toString());
-		if (!res.ok) throw new Error(`HTTP ${res.status} for ${method}`);
-		return res.json();
+        const response = await requestUrl({
+            url: url.toString(),
+            method: "GET"
+        });
+        
+        if (response.status !== 200) {
+            throw new Error(`HTTP ${response.status} for ${method}`);
+        }
+        return response.json;
 	}
 
     /* ----------------------------------------------------

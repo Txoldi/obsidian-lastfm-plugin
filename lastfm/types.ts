@@ -31,7 +31,7 @@ export interface LastFmWeeklyAlbum {
 }
 
 export interface LastFmImage {
-	size: "small" | "medium" | "large" | "extralarge" | string;
+	size: string;
 	"#text": string;
 }
 

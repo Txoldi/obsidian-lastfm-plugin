@@ -19,7 +19,7 @@ export interface LastFmAlbum {
     mbid?: string;
     url: string;
     artist: LastFmArtist; 
-    image?: LastFmImage[];
+    image: LastFmImage[];
 }
 
 export interface LastFmWeeklyAlbum {
@@ -27,6 +27,7 @@ export interface LastFmWeeklyAlbum {
     playcount: string;
     mbid?: string;
     url: string;
+    image?: LastFmImage[];
     artist: LastFmSimpleArtist;
 }
 
@@ -40,14 +41,19 @@ export interface LastFmDate {
 	"#text": string;       // Human-readable timestamp
 }
 
+export interface ImageContainer {
+	image?: LastFmImage[];
+}
+
 export interface LastFmTrack {
 	name: string;
+    playcount?: number
 	artist: LastFmArtist;
 	album: LastFmAlbum;
 	mbid?: string;
 	url?: string;
 	streamable?: string;
-	image?: LastFmImage[];
+	image: LastFmImage[];
 	date?: LastFmDate;
 	["@attr"]?: { nowplaying?: "true" };
 }
@@ -68,41 +74,53 @@ export interface LastFmRecentTracksResponse {
 export interface LastFmTopArtistResponse {
     topartists: {
         artist: LastFmArtist[];
-        "@attr": any;
+        "@attr": {
+            rank: string;
+        }
     };
 }
 
 export interface LastFmTopAlbumResponse {
     topalbums: {
         album: LastFmAlbum[];
-        "@attr": any;
+        "@attr": {
+            rank: string;
+        }
     };
 }
 
 export interface LastFmTopTrackResponse {
     toptracks: {
         track: LastFmTrack[];
-        "@attr": any;
+        "@attr": {
+            rank: string;
+        }
     };
 }
 
 export interface LastFmWeeklyArtistChartResponse {
     weeklyartistchart: {
         artist: LastFmArtist[];
-        "@attr": any;
+        "@attr": {
+            rank: string;
+        }
     };
 }
 
 export interface LastFmWeeklyAlbumChartResponse {
     weeklyalbumchart: {
         album: LastFmWeeklyAlbum[];
-        "@attr": any;
+        "@attr": {
+            rank: string;
+        }
     };
 }
 
 export interface LastFmWeeklyTrackChartResponse {
     weeklytrackchart: {
         track: LastFmTrack[];
-        "@attr": any;
+        "@attr": {
+            rank: string;
+        }
     };
 }

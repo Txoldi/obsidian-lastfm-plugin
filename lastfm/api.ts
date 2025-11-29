@@ -77,7 +77,7 @@ export class LastFmApi {
     /* ----------------------------------------------------
      * TOP TRACKS (PERIOD)
      * ---------------------------------------------------- */
-    async fetchTopTracks(period: string = "7day", limit = 20): Promise<LastFmTrack[]> {
+    async fetchTopTracks(period = "7day", limit = 20): Promise<LastFmTrack[]> {
         const data = (await this.request("user.gettoptracks", {
             period,
             limit: limit.toString()
@@ -89,7 +89,7 @@ export class LastFmApi {
     /* ----------------------------------------------------
      * TOP ARTISTS (PERIOD)
      * ---------------------------------------------------- */
-    async fetchTopArtists(period: string = "7day", limit = 20): Promise<LastFmArtist[]> {
+    async fetchTopArtists(period = "7day", limit = 20): Promise<LastFmArtist[]> {
         const data = (await this.request("user.gettopartists", {
             period,
             limit: limit.toString()

@@ -29,8 +29,8 @@ export class LastFmSettingTab extends PluginSettingTab {
          * API Key
          * ---------------------------- */
         new Setting(containerEl)
-            .setName('API Key')
-            .setDesc('Your Last.fm API key')
+            .setName('Api Key')
+            .setDesc('Your last.fm api key')
             .addText(text => text
                 .setValue(this.plugin.settings.apiKey)
                 .onChange(async (value) => {
@@ -43,7 +43,7 @@ export class LastFmSettingTab extends PluginSettingTab {
          * ---------------------------- */
         new Setting(containerEl)
             .setName('Username')
-            .setDesc('Your Last.fm username')
+            .setDesc('Your last.fm username')
             .addText(text => text
                 .setValue(this.plugin.settings.username)
                 .onChange(async (value) => {
@@ -55,7 +55,7 @@ export class LastFmSettingTab extends PluginSettingTab {
          * Folder
          * ---------------------------- */
         new Setting(containerEl)
-            .setName('Note Folder')
+            .setName('Note folder')
             .setDesc('Folder in which notes will be created')
             .addText(text => text
                 .setValue(this.plugin.settings.folder)

@@ -31,12 +31,12 @@ export default class LastFmPlugin extends Plugin {
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'lastfm-modal',
-			name: 'Fetch last.fm data',
+			id: 'plugin-modal',
+			name: 'Fetch tracks/albums/artists',
 			callback: () => {
 				if (!this.settings.apiKey || !this.settings.username) {
 				// Defenive coding against missing input settings (API key and user name)
-					new Notice("Please configure last.fm api key and username in settings → last.fm plugin.");
+					new Notice("Please configure last.fm API key and username in the settings.");
 					return;
 				}
 				const api = new LastFmApi(this.settings.apiKey, this.settings.username);

@@ -29,7 +29,7 @@ export class LastFmSettingTab extends PluginSettingTab {
          * API Key
          * ---------------------------- */
         new Setting(containerEl)
-            .setName('Api Key')
+            .setName('API key')
             .setDesc('Your last.fm api key')
             .addText(text => text
                 .setValue(this.plugin.settings.apiKey)

@@ -1,175 +1,183 @@
 import { App, Notice } from "obsidian";
 import { LastFmApi } from "../lastfm/api";
-import type { LastFmTrack, LastFmAlbum } from "../lastfm/types";
 import LastFmPlugin from "main";
-import { ensureFolder, extractImage, getArtistName, tsToDate } from "utils/helpers";
+import { TrackItem, ArtistItem, AlbumItem, ItemFor } from "../lastfm/itemTypes";
+import { ensureFolder, extractImage, getArtistName, hasImages, tsToDate } from "utils/helpers";
 
-function buildMarkdownBlock(
-    type: "tracks" | "artists" | "albums",
-    item: any,
-    index: number,
-    context: "default" | "recent" = "default"
+/* ============================================================
+ * buildMarkdownBlock (fully typed)
+ * ============================================================ */
+function buildMarkdownBlock<T extends "tracks" | "artists" | "albums">(
+	type: T,
+	item: ItemFor<T>,
+	index: number,
+	context: "default" | "recent" = "default"
 ): string {
-    const num = index + 1;
+	const num = index + 1;
 
-    /* ---------------------------
-     * Decide whether to include image.
-     * Images are only returned for Recent Scrobbles and top albums
-     * --------------------------- */
-    const shouldIncludeImg =
-        (context === "recent" && type === "tracks") || // recent scrobbles
-        (context === "default" && type === "albums");  // top albums only
+	// Image inclusion logic
+	const shouldIncludeImg =
+		(context === "recent" && type === "tracks") ||
+		(context === "default" && type === "albums");
 
-    const img = shouldIncludeImg ? extractImage(item) : null;
+	let img: string | null = null;
 
-    /* ---------------------------
-     * Tracks
-     * --------------------------- */
-    if (type === "tracks") {
-        const artist = getArtistName(item.artist);
+	if (shouldIncludeImg && hasImages(item)) {
+		img = extractImage(item);
+	}
 
-        const nowPlaying =
-            context === "recent" && item["@attr"]?.nowplaying
-                ? " (Now playing)"
-                : "";
+	/* ---------------------------
+	 * TRACKS
+	 * --------------------------- */
+	if (type === "tracks") {
+		const track = item as TrackItem;
 
-        const album =
-            context === "recent"
-                ? item.album?.["#text"] ?? item.album?.name ?? ""
-                : "";
+		const artist = getArtistName(track.artist);
 
-        const playcountLine = item.playcount
-            ? `\n**Playcount:** ${item.playcount}`
-            : "";
+		const nowPlaying =
+			context === "recent" && track["@attr"]?.nowplaying ? " (Now playing)" : "";
 
-        const albumLine =
-            context === "recent" && album
-                ? `\nAlbum: ${album}`
-                : "";
+		const album =
+			context === "recent"
+				? track.album.name ?? ""
+				: "";
 
-        return `## ${num}. ${item.name} — ${artist}${nowPlaying}${playcountLine}
+		const playcountLine = track.playcount
+			? `\n**Playcount:** ${track.playcount}`
+			: "";
+
+		const albumLine =
+			context === "recent" && album ? `\nAlbum: ${album}` : "";
+
+		return `## ${num}. ${track.name} — ${artist}${nowPlaying}${playcountLine}
 ${img ? `![](${img})` : ""}${albumLine}
 `;
-    }
+	}
 
-    /* ---------------------------
-     * Artists (never include images)
-     * --------------------------- */
-    if (type === "artists") {
-        return `## ${num}. ${item.name}
-**Playcount:** ${item.playcount}
+	/* ---------------------------
+	 * ARTISTS
+	 * --------------------------- */
+	if (type === "artists") {
+		const artist = item as ArtistItem;
+
+		const playcount =
+			"playcount" in artist && artist.playcount ? artist.playcount : "0";
+
+		return `## ${num}. ${getArtistName(artist)}
+**Playcount:** ${playcount}
 `;
-    }
+	}
 
-    /* ---------------------------
-     * Albums (include images ONLY for top albums)
-     * --------------------------- */
-    if (type === "albums") {
-        const artist = getArtistName(item.artist);
+	/* ---------------------------
+	 * ALBUMS
+	 * --------------------------- */
+	if (type === "albums") {
+		const album = item as AlbumItem;
 
-        return `## ${num}. ${item.name} — ${artist}
-**Playcount:** ${item.playcount}
+		const playcount = album.playcount ?? "0";
+
+		return `## ${num}. ${album.name} — ${getArtistName(album.artist)}
+**Playcount:** ${playcount}
 ${img ? `![](${img})` : ""}
 `;
-    }
+	}
 
-    return "";
+	return "";
 }
 
-
+/* ============================================================
+ * Create recent scrobbles note
+ * ============================================================ */
 export async function createRecentTracksNote(
-    app: App,
-    api: LastFmApi,
-    plugin: LastFmPlugin,
-    limit: number
-) {
-    const tracks = await api.fetchRecentScrobbles(limit);
+	app: App,
+	api: LastFmApi,
+	plugin: LastFmPlugin,
+	limit: number
+): Promise<void> {
+	const tracks = await api.fetchRecentScrobbles(limit);
+	const folder = await ensureFolder(plugin);
+	const date = new Date().toISOString().split("T")[0];
 
-    const folder = await ensureFolder(plugin);
-    const date = new Date().toISOString().split("T")[0];
+	const blocks = tracks
+		.map((track, i) => buildMarkdownBlock("tracks", track, i, "recent"))
+		.join("\n");
 
-    const blocks = tracks
-        .map((t, idx) => buildMarkdownBlock("tracks", t, idx, "recent"))
-        .join("\n");
-
-    const content = `# Recent Scrobbles — ${date}
+	const content = `# Recent Scrobbles — ${date}
 
 ${blocks}
 `;
 
-    const filePath = `${folder}/LastFM Recent Scrobbles ${date}.md`;
-    await app.vault.create(filePath, content);
+	const filePath = `${folder}/LastFM Recent Scrobbles ${date}.md`;
+	await app.vault.create(filePath, content);
 
-    new Notice("Last.fm note created!");
+	new Notice("Last.fm note created!");
 }
 
-/* ----------------------------------------------------
- * Unified: Create NOTE for TOP period-based calls
- * ---------------------------------------------------- */
+/* ============================================================
+ * Create TOP note (period mode)
+ * ============================================================ */
 export async function createTopNote(
-    plugin: LastFmPlugin,
-    api: LastFmApi,
-    type: "tracks" | "artists" | "albums",
-    period: string,
-    limit: number
-) {
-    const { app } = plugin;
-    const folder = await ensureFolder(plugin);
-    const date = new Date().toISOString().split("T")[0];
+	plugin: LastFmPlugin,
+	api: LastFmApi,
+	type: "tracks" | "artists" | "albums",
+	period: string,
+	limit: number
+): Promise<void> {
+	const app = plugin.app;
+	const folder = await ensureFolder(plugin);
+	const date = new Date().toISOString().split("T")[0];
 
-    let results: any[] = [];
+	let results: ItemFor<typeof type>[];
 
-    if (type === "tracks") results = await api.fetchTopTracks(period, limit);
-    if (type === "artists") results = await api.fetchTopArtists(period, limit);
-    if (type === "albums") results = await api.fetchTopAlbums(period, limit);
+	if (type === "tracks") results = await api.fetchTopTracks(period, limit);
+	else if (type === "artists") results = await api.fetchTopArtists(period, limit);
+	else results = await api.fetchTopAlbums(period, limit);
 
-    const blocks = results
-        .map((item, idx) => buildMarkdownBlock(type, item, idx))
-        .join("\n");
+	const blocks = results
+		.map((item, i) => buildMarkdownBlock(type, item, i))
+		.join("\n");
 
-    const content = `# Top ${type} — ${period} (${date})
+	const content = `# Top ${type} — ${period} (${date})
 
 ${blocks}
 `;
 
-    const filePath = `${folder}/LastFM Top ${type} ${period} ${date}.md`;
-    await app.vault.create(filePath, content);
+	const filePath = `${folder}/LastFM Top ${type} ${period} ${date}.md`;
+	await app.vault.create(filePath, content);
 
-    new Notice(`Note created: Top ${type} (${period})`);
+	new Notice(`Note created: Top ${type} (${period})`);
 }
 
-
-/* ----------------------------------------------------
- * Unified: Create NOTE for WEEKLY from/to calls
- * ---------------------------------------------------- */
+/* ============================================================
+ * Create WEEKLY note (range mode)
+ * ============================================================ */
 export async function createWeeklyNote(
-    plugin: LastFmPlugin,
-    api: LastFmApi,
-    type: "tracks" | "artists" | "albums",
-    from: string,
-    to: string
-) {
-    const { app } = plugin;
-    const folder = await ensureFolder(plugin);
+	plugin: LastFmPlugin,
+	api: LastFmApi,
+	type: "tracks" | "artists" | "albums",
+	from: string,
+	to: string
+): Promise<void> {
+	const app = plugin.app;
+	const folder = await ensureFolder(plugin);
 
-    let results: any[] = [];
+	let results: ItemFor<typeof type>[];
 
-    if (type === "tracks") results = await api.fetchWeeklyTrackChart(from, to);
-    if (type === "artists") results = await api.fetchWeeklyArtistChart(from, to);
-    if (type === "albums") results = await api.fetchWeeklyAlbumChart(from, to);
+	if (type === "tracks") results = await api.fetchWeeklyTrackChart(from, to);
+	else if (type === "artists") results = await api.fetchWeeklyArtistChart(from, to);
+	else results = await api.fetchWeeklyAlbumChart(from, to);
 
-    const blocks = results
-        .map((item, idx) => buildMarkdownBlock(type, item, idx))
-        .join("\n");
+	const blocks = results
+		.map((item, i) => buildMarkdownBlock(type, item, i))
+		.join("\n");
 
-    const content = `# Weekly ${type} — ${tsToDate(from)} → ${tsToDate(to)}
+	const content = `# Weekly ${type} — ${tsToDate(from)} → ${tsToDate(to)}
 
 ${blocks}
 `;
 
-    const filePath = `${folder}/LastFM Weekly ${type} ${tsToDate(from)} to ${tsToDate(to)}.md`;
-    await app.vault.create(filePath, content);
+	const filePath = `${folder}/LastFM Weekly ${type} ${tsToDate(from)} to ${tsToDate(to)}.md`;
+	await app.vault.create(filePath, content);
 
-    new Notice(`Weekly ${type} note created!`);
+	new Notice(`Weekly ${type} note created!`);
 }
-
